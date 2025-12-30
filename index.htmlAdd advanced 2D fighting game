@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>2D Fighting Game - Advanced</title>
+<style>
+body { margin:0; background:#111; color:white; font-family:Arial; text-align:center; }
+canvas { background:#222; display:block; margin:20px auto; border:2px solid #fff; }
+#menu, #mobileControls { margin-top:10px; }
+button { padding:10px 20px; margin:5px; font-size:16px; cursor:pointer; }
+#mobileControls { display:none; }
+</style>
+</head>
+<body>
+
+<h1>2D Fighting Game</h1>
+<div id="menu">
+<button onclick="startGame()">Start Game</button>
+</div>
+
+<canvas id="game" width="600" height="300"></canvas>
+
+<div id="mobileControls">
+<h3>Player 1 Controls</h3>
+<button onclick="pressKey('w')">↑</button>
+<button onclick="pressKey('a')">←</button>
+<button onclick="pressKey('s')">↓</button>
+<button onclick="pressKey('d')">→</button>
+<button onclick="pressKey('f')">Punch</button>
+<button onclick="pressKey('g')">Kick</button>
+<hr>
+<h3>Player 2 Controls</h3>
+<button onclick="pressKey('ArrowUp')">↑</button>
+<button onclick="pressKey('ArrowLeft')">←</button>
+<button onclick="pressKey('ArrowDown')">↓</button>
+<button onclick="pressKey('ArrowRight')">→</button>
+<button onclick="pressKey('k')">Punch</button>
+<button onclick="pressKey('l')">Kick</button>
+</div>
+
+<script>
+// Canvas
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Players
+let player1, player2, gameInterval, keys = {};
+let gameRunning = false;
+
+function startGame() {
+    player1 = {x:50, y:200, w:40, h:60, color:"red", health:100, action:"idle"};
+    player2 = {x:510, y:200, w:40, h:60, color:"blue", health:100, action:"idle"};
+    keys = {};
+    if(gameInterval) clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, 50);
+    gameRunning = true;
+    document.getElementById("menu").style.display = "none";
+    if(window.innerWidth < 600) document.getElementById("mobileControls").style.display = "block";
+}
+
+// Keyboard events
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Mobile touch buttons
+function pressKey(k){ keys[k]=true; setTimeout(()=>{keys[k]=false;},100); }
+
+// Game loop
+function gameLoop(){
+    if(!gameRunning) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Player1 Controls
+    if(keys["w"] && player1.y>0) player1.y-=5;
+    if(keys["s"] && player1.y+player1.h<canvas.height) player1.y+=5;
+    if(keys["a"] && player1.x>0) player1.x-=5;
+    if(keys["d"] && player1.x+player1.w<canvas.width) player1.x+=5;
+
+    // Player2 Controls
+    if(keys["ArrowUp"] && player2.y>0) player2.y-=5;
+    if(keys["ArrowDown"] && player2.y+player2.h<canvas.height) player2.y+=5;
+    if(keys["ArrowLeft"] && player2.x>0) player2.x-=5;
+    if(keys["ArrowRight"] && player2.x+player2.w<canvas.width) player2.x+=5;
+
+    // Attacks
+    if(keys["f"] && collision(player1, player2)) player2.health -=2;
+    if(keys["g"] && collision(player1, player2)) player2.health -=4;
+    if(keys["k"] && collision(player2, player1)) player1.health -=2;
+    if(keys["l"] && collision(player2, player1)) player1.health -=4;
+
+    // Draw players with action animation (simple color change)
+    drawPlayer(player1, keys["f"]||keys["g"] ? "orange" : player1.color);
+    drawPlayer(player2, keys["k"]||keys["l"] ? "purple" : player2.color);
+
+    // Draw Health bars
+    drawHealth(player1, 20, 10);
+    drawHealth(player2, canvas.width-220, 10);
+
+    // Game Over
+    if(player1.health<=0 || player2.health<=0){
+        gameRunning=false;
+        clearInterval(gameInterval);
+        alert(player1.health<=0 ? "Player 2 Wins!" : "Player 1 Wins!");
+        document.getElementById("menu").style.display="block";
+        document.getElementById("mobileControls").style.display="none";
+    }
+}
+
+// Functions
+function drawPlayer(p,color){
+    ctx.fillStyle = color;
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+}
+
+function drawHealth(p,x,y){
+    ctx.fillStyle = "grey";
+    ctx.fillRect(x,y,200,20);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(x,y,p.health*2,20);
+}
+
+function collision(p1,p2){
+    return p1.x < p2.x + p2.w &&
+           p1.x + p1.w > p2.x &&
+           p1.y < p2.y + p2.h &&
+           p1.y + p1.h > p2.y;
+}
+</script>
+
+</body>
+  </html>
