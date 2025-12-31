@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>2D Fighting Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  background:#111;
+  color:white;
+  text-align:center;
+  font-family:Arial;
+}
+canvas{
+  background:#222;
+  display:block;
+  margin:10px auto;
+  border:3px solid white;
+}
+button{
+  padding:10px 20px;
+  font-size:16px;
+  margin:5px;
+}
+.controls button{
+  width:70px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>2D Fighting Game</h2>
+<button onclick="startGame()">Start Game</button>
+
+<canvas id="game" width="360" height="240"></canvas>
+
+<div class="controls">
+  <h4>Player 1</h4>
+  <button onclick="keys.a=true">◀</button>
+  <button onclick="keys.d=true">▶</button>
+  <button onclick="attack(1)">Punch</button>
+</div>
+
+<div class="controls">
+  <h4>Player 2</h4>
+  <button onclick="keys.j=true">◀</button>
+  <button onclick="keys.l=true">▶</button>
+  <button onclick="attack(2)">Punch</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let p1, p2, game;
+
+const keys = {};
+
+function startGame(){
+  p1 = {x:40,y:160,w:30,h:50,hp:100,color:"red"};
+  p2 = {x:290,y:160,w:30,h:50,hp:100,color:"blue"};
+  if(game) clearInterval(game);
+  game = setInterval(loop,40);
+}
+
+function attack(player){
+  if(player===1 && hit(p1,p2)) p2.hp -=10;
+  if(player===2 && hit(p2,p1)) p1.hp -=10;
+}
+
+function loop(){
+  ctx.clearRect(0,0,360,240);
+
+  if(keys.a) p1.x-=4;
+  if(keys.d) p1.x+=4;
+  if(keys.j) p2.x-=4;
+  if(keys.l) p2.x+=4;
+
+  draw(p1);
+  draw(p2);
+
+  // Health bars
+  ctx.fillStyle="red";
+  ctx.fillRect(10,10,p1.hp,10);
+  ctx.fillStyle="blue";
+  ctx.fillRect(250,10,p2.hp,10);
+
+  if(p1.hp<=0 || p2.hp<=0){
+    alert(p1.hp<=0 ? "Player 2 Wins!" : "Player 1 Wins!");
+    clearInterval(game);
+  }
+}
+
+function draw(p){
+  ctx.fillStyle=p.color;
+  ctx.fillRect(p.x,p.y,p.w,p.h);
+}
+
+function hit(a,b){
+  return a.x < b.x+b.w &&
+         a.x+a.w > b.x &&
+         a.y < b.y+b.h &&
+         a.y+a.h > b.y;
+}
+</script>
+
+</body>
+</html>
